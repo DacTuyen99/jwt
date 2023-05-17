@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import com.example.demo.entity.EmailMessage;
+import com.example.demo.repository.SendEmailRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -12,6 +14,7 @@ public class EmailSenderService{
 //    @Value("{spring.mail.username}")
 //    private final String fromEmail;
     private final JavaMailSender javaMailSender;
+    private final SendEmailRepository emailRepository;
 
     public void sendEmail(String to){
         SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
@@ -21,5 +24,8 @@ public class EmailSenderService{
         simpleMailMessage.setText("abc");
 
         javaMailSender.send(simpleMailMessage);
+        EmailMessage emailMessage = new EmailMessage();
+        emailMessage.setToEmail(to);
+        emailRepository.save(emailMessage);
     }
 }

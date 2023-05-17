@@ -32,33 +32,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authorizationHeader = request.getHeader(AUTHORIZATION);
-        if (authorizationHeader!=null && authorizationHeader.startsWith("Bearer")){
-            try {
-                String token = authorizationHeader.substring("Bearer ".length());
-                Algorithm algorithm = Algorithm.HMAC256(Secret_key.getBytes());
-                JWTVerifier verifier = JWT.require(algorithm).build();
-                DecodedJWT decodedJWT = verifier.verify(token);
-                String email = decodedJWT.getSubject();
-                User user = userRepository.findUserByEmail(email).get();
-                String[] roles = decodedJWT.getClaim("roles").asArray(String.class);
-
-                Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-                Arrays.stream(roles).forEach(role->authorities.add(new SimpleGrantedAuthority(role)));
-
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user,null,authorities);
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-                filterChain.doFilter(request,response);
-            }catch (Exception exception){
-                response.setHeader("error", exception.getMessage());
-                response.setStatus(HttpStatus.FORBIDDEN.value());
-                Map<String,String> error = new HashMap<>();
-                error.put("error_message",exception.getMessage());
-                response.setContentType(APPLICATION_JSON_VALUE);
-                new ObjectMapper().writeValue(response.getOutputStream(),error);
-            }
-        }else {
+        if (request.getServletPath().equals("/api/v1/auth/login") || request.getServletPath().equals("/api/v1/auth/refresh-token")){
             filterChain.doFilter(request,response);
+        } else {
+            String authorizationHeader = request.getHeader(AUTHORIZATION);
+            if (authorizationHeader!=null && authorizationHeader.startsWith("Bearer")){
+                try {
+                    String token = authorizationHeader.substring("Bearer ".length());
+                    Algorithm algorithm = Algorithm.HMAC256(Secret_key.getBytes());
+                    JWTVerifier verifier = JWT.require(algorithm).build();
+                    DecodedJWT decodedJWT = verifier.verify(token);
+                    String email = decodedJWT.getSubject();
+                    User user = userRepository.findUserByEmail(email).get();
+                    String[] roles = decodedJWT.getClaim("roles").asArray(String.class);
+
+                    Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
+                    Arrays.stream(roles).forEach(role->authorities.add(new SimpleGrantedAuthority(role)));
+
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user,null,authorities);
+                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                    filterChain.doFilter(request,response);
+                }catch (Exception exception){
+                    response.setHeader("error", exception.getMessage());
+                    response.setStatus(HttpStatus.FORBIDDEN.value());
+                    Map<String,String> error = new HashMap<>();
+                    error.put("error_message",exception.getMessage());
+                    response.setContentType(APPLICATION_JSON_VALUE);
+                    new ObjectMapper().writeValue(response.getOutputStream(),error);
+                }
+            }else {
+                filterChain.doFilter(request,response);
+            }
         }
     }
 }
