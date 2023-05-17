@@ -4,8 +4,10 @@ import com.example.demo.auth.AuthenticationRequest;
 import com.example.demo.auth.AuthenticationResponse;
 import com.example.demo.dto.ChangePassword;
 import com.example.demo.dto.RegisterUserDTO;
+import com.example.demo.entity.EmailMessage;
 import com.example.demo.entity.User;
 import com.example.demo.service.AuthenticationService;
+import com.example.demo.service.EmailSenderService;
 import com.example.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final UserService userService;
+    private final EmailSenderService emailSenderService;
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest authenticationRequest){
         return ResponseEntity.ok(authenticationService.authenticate(authenticationRequest));
@@ -34,5 +37,11 @@ public class AuthenticationController {
     public ResponseEntity<String> changePassword(@RequestBody ChangePassword changePassword, Authentication authentication){
         userService.changePassword(changePassword,authentication);
         return ResponseEntity.ok("success");
+    }
+
+    @PostMapping("/send-email")
+    public ResponseEntity<String> sendEmail(@RequestBody EmailMessage emailMessage){
+        emailSenderService.sendEmail(emailMessage.getToEmail());
+        return ResponseEntity.ok("Success");
     }
 }
