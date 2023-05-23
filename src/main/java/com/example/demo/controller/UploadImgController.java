@@ -1,14 +1,12 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.ProductImage;
-import com.example.demo.service.AuthenticationService;
 import com.example.demo.service.ProductImgService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,8 +21,7 @@ public class UploadImgController {
 
     @PostMapping("/upload-image")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<List<ProductImage>> uploadImg(@RequestParam("image")List<MultipartFile> files, Authentication authentication) throws IOException {
-        System.out.println("test" + authentication.getAuthorities().toString());
+    public ResponseEntity<List<ProductImage>> uploadImg(@RequestParam("image")List<MultipartFile> files) throws IOException {
         return  ResponseEntity.ok(productImgService.uploadImg(files));
     }
 
